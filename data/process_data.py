@@ -95,7 +95,9 @@ def save_data(df, database_filename):
     
     returns: None
     """
-    engine = create_engine('sqlite:///' + database_filename)  
+    # initialize sqlalchemy engine
+    engine = create_engine('sqlite:///' + database_filename)
+    # export data to messages table in specified database
     df.to_sql('messages', engine, index=False, if_exists='replace')
 
 def main():
