@@ -5,20 +5,20 @@ import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import classification_report, fbeta_score, make_scorer
-from sklearn.svm import LinearSVC
-from sklearn.naive_bayes import GaussianNB, MultinomialNB
-from sklearn.preprocessing import FunctionTransformer
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.externals import joblib
+from sklearn.exceptions import UndefinedMetricWarning
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import re
+import warnings
 
 
 
@@ -65,7 +65,7 @@ def tokenize(text):
         a list of the word tokens, in sequence
     """
     # remove punctuation using regex, convert to lowercase
-    text = re.sub("[^a-zA-Z0-9]", "", text.lower())
+    text = re.sub("[^a-zA-Z0-9]", " ", text.lower())
     # tokenize into words
     words = word_tokenize(text)
     # lemmatize nouns and verbs while removing stopwords and extraneous spaces
@@ -91,22 +91,35 @@ def build_model():
     # build model
     pipeline = Pipeline([
     # count vectorizer to count the occurrences of word tokens
-    ('vect', CountVectorizer(tokenizer=tokenize, min_df=2)),
+    ('vect', CountVectorizer(tokenizer=tokenize)),
     # tfidf transformation
     ('tfidf', TfidfTransformer()),
     # multi-output classifier using random forests
     ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
     
-    return pipeline
+    # define parameters for grid search testing
+    # test minimum occurrence of 1 or 2 and
+    # 2 different classifier algorithms with base parameters
+    params = {'vect__min_df': [1, 2],
+             'clf__estimator': [RandomForestClassifier(), MultinomialNB()]}
+    
+    # use f2 score to evaluate model - recall is more important than precision
+    # (we want to make sure all messages with requests get through)
+    # but precision is still important - can achieve recall of 1 by passing all messages through
+    score = make_scorer(lambda x, y: fbeta_score(x, y, beta=2, average='macro'))
+    
+    cv = GridSearchCV(estimator=pipeline, param_grid=params, scoring=score)
+    
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
     """
     This function evaluates the model and prints results to the console.
     
-    model: sklearn.estimator
-        the model to be evaluated
+    model: sklearn.GridSearchCV
+        the fitted GridSearch object
     X_test: np.array
         a numpy array of messages to be classified
     Y_test: np.array
@@ -118,23 +131,23 @@ def evaluate_model(model, X_test, Y_test, category_names):
     """
     
     # predict class categories using the model
-    y_pred = model.predict(X_test)
+    y_pred = model.best_estimator_.predict(X_test)
     # print the result of sklearn's categorization_report
-    print(classification_report(Y_test[:,1:], y_pred[:,1:], target_names=category_names[1:]))
+    print(classification_report(Y_test, y_pred, target_names=category_names))
 
 
 def save_model(model, model_filepath):
     """
-    This function saves the provided model to the provided filepath, using
-    sklearn's joblib.dump and pickle format.
+    This function saves the best estimator from the provided grid search object
+    to the provided filepath, using sklearn's joblib.dump and pickle format.
     
-    model: sklearn.estimator
-        the model to be exported
+    model: sklearn.GridSearchCV object
+        the fitted GridSearch object
     model_filepath: str
         the path where the pickle file is to be written
     """
     
-    joblib.dump(model, model_filepath)
+    joblib.dump(model.best_estimator_, model_filepath)
 
 
 def main():
@@ -143,6 +156,15 @@ def main():
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
         X, Y, category_names = load_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        
+        # Filter expected warnings to clean up console output
+        # filter undefined metric warnings from printing
+        # many appear because of categories with no true samples
+        # or no predicted values
+        warnings.filterwarnings(action='ignore', category=UndefinedMetricWarning)
+        # also filter RuntimeWarning, which appears due to divide-by-zero in 
+        # Naive Bayes because one of the categories has no samples in training
+        warnings.filterwarnings(action='ignore', category=RuntimeWarning)
         
         print('Building model...')
         model = build_model()
