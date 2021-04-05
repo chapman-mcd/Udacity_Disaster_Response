@@ -32,6 +32,16 @@ Elevated user privileges may be required the first time running train_classifier
 
 3. Go to http://0.0.0.0:3001/
 
+## Included Files
+
+- /App/
+	run.py: starts the webapp
+    go.html, master.html: web source
+- /data/process_data.py: processes message training data for consumption by the machine learning model
+- /models/train_classifier.py: uses the processed data to train a message classifier
+
+Training data not included as it is likely proprietary.
+
 ## Acknowledgements
 
 - [FigureEight](https://appen.com/) (now acquired by Appen), for providing the training data
