@@ -11,7 +11,7 @@ Additional packages are used, but all within base python.
 From a new directory, using `conda`:  
 
 ```
-conda create -n disaster-response
+conda create -n disaster_response
 conda activate disaster_response
 conda install numpy pandas scikit-learn nltk sqlalchemy
 git clone https://github.com/chapman-mcd/Udacity_Disaster_Response
