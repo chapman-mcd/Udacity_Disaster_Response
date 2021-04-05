@@ -46,56 +46,19 @@ def index():
     # generate bar chart of top requests
     melted = df.melt(id_vars=['id','message','original', 'genre'], value_name='value')
     melted = melted[~(melted.variable.isin(['related', 'request', 'offer', 'direct_report' , 
-                                        'aid_related', 'weather_related', 'infrastructure_related']))]
+                                        'aid_related', 'weather_related', 'infrastructure_related',
+                                           'other_aid']))]
     top_requests = melted.groupby('variable').sum()['value'].sort_values(ascending=False).head(10)
     top_requests_names = top_requests.index.tolist()
     
     # bar chart of needle in a haystack - % of messages that request aid
     request_counts = df.groupby('request').count()['id']
-    request_names = ['No', 'Yes']
+    request_names = ["Sender doesn't need help", 'Sender needs help']
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
-        # bar chart of genres of messages
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
-
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        },
-        # bar chart of top requests
-                {
-            'data': [
-                Bar(
-                    x=request_names,
-                    y=request_counts
-                )
-            ],
-
-            'layout': {
-                'title': "Messages that do and don't ask for help",
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Help needed?"
-                }
-            }
-        },
-        # bar chart of requests for aid
+                # bar chart of requests for aid
                         {
             'data': [
                 Bar(
@@ -111,6 +74,44 @@ def index():
                 },
                 'xaxis': {
                     'title': "Request Category"
+                }
+            }
+        },
+        # bar chart of top requests
+                {
+            'data': [
+                Bar(
+                    x=request_names,
+                    y=request_counts
+                )
+            ],
+
+            'layout': {
+                'title': "Separating the Signal from the Noise - Which messages ask for help and which don't?",
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': ""
+                }
+            }
+        },
+# bar chart of genres of messages
+        {
+            'data': [
+                Bar(
+                    x=genre_names,
+                    y=genre_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Genres',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Genre"
                 }
             }
         }
