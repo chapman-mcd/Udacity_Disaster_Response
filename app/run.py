@@ -43,9 +43,21 @@ def index():
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    # generate bar chart of top requests
+    melted = df.melt(id_vars=['id','message','original', 'genre'], value_name='value')
+    melted = melted[~(melted.variable.isin(['related', 'request', 'offer', 'direct_report' , 
+                                        'aid_related', 'weather_related', 'infrastructure_related']))]
+    top_requests = melted.groupby('variable').sum()['value'].sort_values(ascending=False).head(10)
+    top_requests_names = top_requests.index.tolist()
+    
+    # bar chart of needle in a haystack - % of messages that request aid
+    request_counts = df.groupby('request').count()['id']
+    request_names = ['No', 'Yes']
+    
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
+        # bar chart of genres of messages
         {
             'data': [
                 Bar(
@@ -61,6 +73,44 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        # bar chart of top requests
+                {
+            'data': [
+                Bar(
+                    x=request_names,
+                    y=request_counts
+                )
+            ],
+
+            'layout': {
+                'title': "Messages that do and don't ask for help",
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Help needed?"
+                }
+            }
+        },
+        # bar chart of requests for aid
+                        {
+            'data': [
+                Bar(
+                    x=top_requests_names,
+                    y=top_requests
+                )
+            ],
+
+            'layout': {
+                'title': 'Top 10 Requests for Assistance',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Request Category"
                 }
             }
         }
