@@ -70,7 +70,7 @@ def index():
             'layout': {
                 'title': 'Top 10 Requests for Assistance',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Number of Requests"
                 },
                 'xaxis': {
                     'title': "Request Category"
@@ -89,7 +89,7 @@ def index():
             'layout': {
                 'title': "Separating the Signal from the Noise - Which messages ask for help and which don't?",
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Number of Messages"
                 },
                 'xaxis': {
                     'title': ""
@@ -108,7 +108,7 @@ def index():
             'layout': {
                 'title': 'Distribution of Message Genres',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Number of Messages"
                 },
                 'xaxis': {
                     'title': "Genre"
