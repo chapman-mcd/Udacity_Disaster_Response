@@ -37,6 +37,7 @@ def clean_data(df):
             - Use all columns besides ID to decide if a row is unique
             - Determine first index of each unique row
             - Filter to only the first indices (keeps 1 of each row with dupes)
+        - Drop rows with related == 2 as they are uncategorized and incomplete
         
     df: pandas.DataFrame
         the dataframe to be cleaned
@@ -79,6 +80,8 @@ def clean_data(df):
     
     # filter to only the desired indices and drop the unique mash temp column
     df = df[df.index.isin(indices_to_keep)].drop(columns=['unique_mash'])
+    # remove rows with related == 2
+    df = df[~(df.related == 2)]
 
     return df
 
