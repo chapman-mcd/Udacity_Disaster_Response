@@ -2,6 +2,10 @@
 
 This project processes message text received by aid organizations in disasters, and categorizes them across 36 key categories.  Primary categorizations are related/unrelated to a disaster, whether the message requests assistance, and whether the message is a direct report.  The full categorization includes the type of disaster, and the type of assistance requested in the message.
 
+## Project Discussion
+
+One of the challenges presented by this task is how to evaluate the performance of the model.  Accuracy is not necessarily the best metric here, as the data is unbalanced.  High accuracy scores can be achieved by a model which categorizes all messages as not in any of the categories.  So precision and recall are more appropriate.  Of the two, recall is the more important, since the impact of filtering out a request for aid is large compared to the impact of forwarding on a possibly-unrelated message.  However, precision cannot be discarded completely - the basis of the problem is that aid organizations receive a flood of messages and have trouble determining which messages are relevant to their response.  A perfect recall score could be achieved by simply forwarding on all messages, but this would accomplish nothing.  As a result, the machine learning models are evaluated on the basis of their f2 score, which gives slightly more weight to recall than precision.
+
 ## Dependencies
 This project depends on the `pandas`, `numpy`, `scikit-learn`, `nltk` and `sqlalchemy` python libraries.  
 
